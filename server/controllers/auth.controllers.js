@@ -3,7 +3,7 @@ import { ApiErrors } from '../utils/ApiErrors.js'
 import { ApiResponse } from '../utils/ApiResponse.js'
 import User from '../models/User.models.js'
 import { sendOtpEmail } from '../services/email.service.js'
-import  {generateToken}  from '../utils/generateTokens.js'
+import  {generateToken}  from '../utils/generateToken.js'
 
 const registerUser = asyncHandler(async (req, res) => {
 
