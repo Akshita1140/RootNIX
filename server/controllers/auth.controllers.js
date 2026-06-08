@@ -3,12 +3,12 @@ import { ApiErrors } from '../utils/ApiErrors.js'
 import { ApiResponse } from '../utils/ApiResponse.js'
 import User from '../models/User.models.js'
 import { sendOtpEmail } from '../services/email.service.js'
-
+import { uploadOnCloudinary } from "../utils/cloudinary.js"
 
 
 const generateAccessTokenandRefreshToken = async (userId) => {
     const user = await User.findById(userId)
-    await user.save({validateBeforeSave:false})
+    await user.save({ validateBeforeSave: false })
     const accessToken = await user.generateAccessToken()
     const refreshToken = await user.generateRefreshToken()
     return { accessToken, refreshToken }
@@ -115,43 +115,90 @@ const verifyOtp = asyncHandler(async (req, res) => {
 
 })
 
-const loginUser = asyncHandler(async (req,res)=>{
-// 1. req.body se email aur password nikalo
-const {email,password} = req.body
-// 2. Check karo email/password empty toh nahi
-if([email,password].some((field)=>!field || String(field).trim()==="")){
-    throw new ApiErrors(400,"Please provide email and password")
-}
-// 3. User find karo email se
-const user = await User.findOne({email}).select("+password +verified")
-// 4. Password field bhi select karo because schema me select:false hai
-// 5. Agar user nahi mila toh error
-if(!user){
-    throw new ApiErrors(404,"User not found with this email")
-}
-// 6. Agar user verified nahi hai toh error
-if(!user.verified){
-    throw new ApiErrors(400,"Email not verified. Please verify your email before logging in.")
-}
-// 7. Password compare karo using matchPassword()
-const isPasswordVerified = await user.matchPassword(password)
-// 8. Agar password wrong hai toh error
-if(!isPasswordVerified){
-    throw new ApiErrors(400,"Invalid credentials")
-}
-// 9. JWT token generate karo
-const { accessToken, refreshToken } = await generateAccessTokenandRefreshToken(user._id)
-// 10. Safe user fetch karo without password
-const safeUser = await User.findById(user._id).select("-password -otp -otpExpiry -refreshToken")
-// 11. Response bhejo: user + token
-const options = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict"
-}
-return res.status(200).cookie("refreshToken", refreshToken, options).cookie("accessToken", accessToken, options).json(
-    new ApiResponse(200, { user: safeUser, accessToken }, "Login successful")
-)
+const loginUser = asyncHandler(async (req, res) => {
+    // 1. req.body se email aur password nikalo
+    const { email, password } = req.body
+    // 2. Check karo email/password empty toh nahi
+    if ([email, password].some((field) => !field || String(field).trim() === "")) {
+        throw new ApiErrors(400, "Please provide email and password")
+    }
+    // 3. User find karo email se
+    const user = await User.findOne({ email }).select("+password +verified")
+    // 4. Password field bhi select karo because schema me select:false hai
+    // 5. Agar user nahi mila toh error
+    if (!user) {
+        throw new ApiErrors(404, "User not found with this email")
+    }
+    // 6. Agar user verified nahi hai toh error
+    if (!user.verified) {
+        throw new ApiErrors(400, "Email not verified. Please verify your email before logging in.")
+    }
+    // 7. Password compare karo using matchPassword()
+    const isPasswordVerified = await user.matchPassword(password)
+    // 8. Agar password wrong hai toh error
+    if (!isPasswordVerified) {
+        throw new ApiErrors(400, "Invalid credentials")
+    }
+    // 9. JWT token generate karo
+    const { accessToken, refreshToken } = await generateAccessTokenandRefreshToken(user._id)
+    // 10. Safe user fetch karo without password
+    const safeUser = await User.findById(user._id).select("-password -otp -otpExpiry -refreshToken")
+    // 11. Response bhejo: user + token
+    const options = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict"
+    }
+    return res.status(200).cookie("refreshToken", refreshToken, options).cookie("accessToken", accessToken, options).json(
+        new ApiResponse(200, { user: safeUser, accessToken }, "Login successful")
+    )
+})
+
+const refreshAccessToken = asyncHandler(async (req, res) => {
+    const incomingRefreshToken =
+        req.cookies?.refreshToken ||
+        req.body?.refreshToken ||
+        req.header("Authorization")?.replace("Bearer ", "")
+
+    if (!incomingRefreshToken) {
+        throw new ApiErrors(401, "Refresh token not found. Please log in again.")
+    }
+
+    const decodedToken = jwt.verify(
+        incomingRefreshToken,
+        process.env.REFRESH_TOKEN_SECRET
+    )
+
+    const user = await User.findById(decodedToken?.id).select("+refreshToken")
+
+    if (!user) {
+        throw new ApiErrors(401, "User not found. Invalid refresh token.")
+    }
+
+    if (user.refreshToken !== incomingRefreshToken) {
+        throw new ApiErrors(401, "Refresh token mismatch. Please log in again.")
+    }
+
+    const { accessToken, refreshToken } =
+        await generateAccessTokenandRefreshToken(user._id)
+
+    const options = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict"
+    }
+
+    return res
+        .status(200)
+        .cookie("refreshToken", refreshToken, options)
+        .cookie("accessToken", accessToken, options)
+        .json(
+            new ApiResponse(
+                200,
+                { accessToken, refreshToken },
+                "Access token refreshed successfully"
+            )
+        )
 })
 
 const logOutUser = asyncHandler(async (req, res) => {
@@ -181,4 +228,139 @@ const logOutUser = asyncHandler(async (req, res) => {
         )
 })
 
-export { registerUser, verifyOtp, loginUser, logOutUser }
+const getCurrentUser = asyncHandler(async (req, res) => {
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            req.user,
+            "Current user fetched successfully"
+        )
+    )
+})
+
+const forgotPassword = asyncHandler(async (req, res) => {
+    const { email } = req.body
+
+    if (!email || String(email).trim() === "") {
+        throw new ApiErrors(400, "Email is required")
+    }
+
+    const user = await User.findOne({ email })
+
+    if (!user) {
+        throw new ApiErrors(404, "User not found with this email")
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString()
+    const otpExpiry = new Date(Date.now() + 5 * 60 * 1000)
+
+    user.otp = otp
+    user.otpExpiry = otpExpiry
+
+    await user.save({ validateBeforeSave: false })
+
+    const otpEmail = await sendOtpEmail(email, otp)
+
+    if (!otpEmail) {
+        throw new ApiErrors(500, "Failed to send password reset OTP")
+    }
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            null,
+            "Password reset OTP sent to your email."
+        )
+    )
+})
+
+const resetPassword = asyncHandler(async (req, res) => {
+    const { email, otp, newPassword } = req.body
+
+    if ([email, otp, newPassword].some((field) => !field || String(field).trim() === "")) {
+        throw new ApiErrors(400, "Email, OTP and new password are required")
+    }
+
+    const user = await User.findOne({ email }).select("+otp +otpExpiry +password")
+
+    if (!user) {
+        throw new ApiErrors(404, "User not found with this email")
+    }
+
+    if (!user.otp || !user.otpExpiry) {
+        throw new ApiErrors(400, "OTP not found. Please request a new one.")
+    }
+
+    if (user.otp !== String(otp)) {
+        throw new ApiErrors(400, "Invalid OTP")
+    }
+
+    if (user.otpExpiry < new Date()) {
+        throw new ApiErrors(400, "OTP has expired. Please request a new one.")
+    }
+
+    user.password = newPassword
+    user.otp = undefined
+    user.otpExpiry = undefined
+    user.refreshToken = null
+
+    await user.save()
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            null,
+            "Password reset successfully. You can now log in with your new password."
+        )
+    )
+})
+
+const updateAvatar = asyncHandler(async (req, res) => {
+    const avatarLocalPath = req.file?.path
+
+    if (!avatarLocalPath) {
+        throw new ApiErrors(400, "Avatar file is required")
+    }
+
+    const avatarUrl = await uploadOnCloudinary(avatarLocalPath)
+
+    if (!avatarUrl) {
+        throw new ApiErrors(500, "Failed to upload avatar")
+    }
+
+    const user = await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set: {
+                avatar: avatarUrl
+            }
+        },
+        {
+            new: true
+        }
+    ).select("-password -refreshToken -otp -otpExpiry")
+
+    if (!user) {
+        throw new ApiErrors(404, "User not found")
+    }
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            user,
+            "Avatar updated successfully"
+        )
+    )
+})
+
+export {
+    registerUser,
+    verifyOtp,
+    loginUser,
+    logOutUser,
+    refreshAccessToken,
+    getCurrentUser,
+    forgotPassword,
+    resetPassword,
+    updateAvatar
+}
