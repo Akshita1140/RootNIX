@@ -8,11 +8,13 @@ import {
     getCurrentUser,
     forgotPassword,
     resetPassword,
-    updateAvatar
+    updateAvatar,
+    resendOtp,
 } from '../controllers/auth.controllers.js'
 import { verifyJWT } from '../middleware/auth.middleware.js'
 import { upload } from "../middleware/multer.middleware.js"
-import { USER_ROLES } from "../constants/roles.js"
+import { authorizeRoles } from '../middleware/role.middleware.js'
+
 
 const router = Router()
 
@@ -22,6 +24,7 @@ router.route('/login').post(loginUser)
 router.route("/refresh-token").post(refreshAccessToken)
 router.route('/forgot-password').post(forgotPassword)
 router.route('/reset-password').post(resetPassword)
+router.route('/resend-otp').post(resendOtp)
 
 //Secured route 
 router.route('/logout').post(verifyJWT, logOutUser)
@@ -32,17 +35,17 @@ router.patch(
     upload.single("avatar"),
     updateAvatar
 )
-router.post(
-    "/products",
-    verifyJWT,
-    authorizeRoles("seller", "admin"),
-    createProduct
-)
-router.post(
-    "/products",
-    verifyJWT,
-    authorizeRoles(USER_ROLES.SELLER, USER_ROLES.ADMIN),
-    createProduct
-)
+// router.post(
+//     "/products",
+//     verifyJWT,
+//     authorizeRoles("seller", "admin"),
+//     createProduct
+// )
+// router.post(
+//     "/products",
+//     verifyJWT,
+//     authorizeRoles(USER_ROLES.SELLER, USER_ROLES.ADMIN),
+//     createProduct
+// )
 
 export default router

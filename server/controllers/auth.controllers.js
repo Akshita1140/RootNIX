@@ -1,3 +1,4 @@
+import jwt from "jsonwebtoken"
 import { asyncHandler } from '../utils/asynchandler.js'
 import { ApiErrors } from '../utils/ApiErrors.js'
 import { ApiResponse } from '../utils/ApiResponse.js'
@@ -8,9 +9,12 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js"
 
 const generateAccessTokenandRefreshToken = async (userId) => {
     const user = await User.findById(userId)
-    await user.save({ validateBeforeSave: false })
+    
     const accessToken = await user.generateAccessToken()
     const refreshToken = await user.generateRefreshToken()
+    user.refreshToken = refreshToken
+
+    await user.save({ validateBeforeSave: false })
     return { accessToken, refreshToken }
 }
 
@@ -160,6 +164,8 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         req.body?.refreshToken ||
         req.header("Authorization")?.replace("Bearer ", "")
 
+        
+
     if (!incomingRefreshToken) {
         throw new ApiErrors(401, "Refresh token not found. Please log in again.")
     }
@@ -181,6 +187,9 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
     const { accessToken, refreshToken } =
         await generateAccessTokenandRefreshToken(user._id)
+
+        console.log("New access token generated:", accessToken)
+        console.log("New refresh token generated:", refreshToken)
 
     const options = {
         httpOnly: true,
@@ -353,6 +362,46 @@ const updateAvatar = asyncHandler(async (req, res) => {
     )
 })
 
+const resendOtp = asyncHandler(async (req, res) => {
+    const { email } = req.body
+
+    if (!email || String(email).trim() === "") {
+        throw new ApiErrors(400, "Email is required")
+    }
+
+    const user = await User.findOne({ email })
+
+    if (!user) {
+        throw new ApiErrors(404, "User not found with this email")
+    }
+
+    if (user.verified) {
+        throw new ApiErrors(400, "Email is already verified")
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString()
+    const otpExpiry = new Date(Date.now() + 5 * 60 * 1000)
+
+    user.otp = otp
+    user.otpExpiry = otpExpiry
+
+    await user.save({ validateBeforeSave: false })
+
+    const otpEmail = await sendOtpEmail(email, otp)
+
+    if (!otpEmail) {
+        throw new ApiErrors(500, "Failed to send OTP email")
+    }
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            null,
+            "New OTP sent successfully"
+        )
+    )
+})
+
 export {
     registerUser,
     verifyOtp,
@@ -362,5 +411,6 @@ export {
     getCurrentUser,
     forgotPassword,
     resetPassword,
-    updateAvatar
+    updateAvatar,
+    resendOtp
 }
