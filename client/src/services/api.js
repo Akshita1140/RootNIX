@@ -1,5 +1,10 @@
 import axios from "axios"
 
+// in-memory token store — never touches localStorage
+let accessToken = null;
+export const setAccessToken = (token) => { accessToken = token; };
+export const getAccessToken = () => accessToken;
+
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api/v1",
     withCredentials: true,
@@ -8,7 +13,7 @@ const api = axios.create({
 // Attach access token with every request
 api.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem("accessToken")
+        const token = getAccessToken()
 
         if (token) {
             config.headers.Authorization = `Bearer ${token}`
@@ -42,15 +47,16 @@ api.interceptors.response.use(
                     res.data?.accessToken || res.data?.data?.accessToken
 
                 if (newAccessToken) {
-                    localStorage.setItem("accessToken", newAccessToken)
+                    setAccessToken(newAccessToken)
 
                     originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
 
                     return api(originalRequest)
                 }
             } catch (refreshError) {
-                localStorage.removeItem("accessToken")
-                localStorage.removeItem("user")
+               
+                setAccessToken(null)  // ← clear memory
+                // user cleanup happens in AuthContext, not her
 
                 return Promise.reject(refreshError)
             }

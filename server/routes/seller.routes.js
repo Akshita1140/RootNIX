@@ -7,7 +7,7 @@ import {
     getSellerProfileById,
     getSellerDashboardStats,
     deleteSellerProfile,
-} from "../controllers/seller.contollers.js"
+} from "../controllers/seller.controllers.js"
 
 import { verifyJWT } from "../middleware/auth.middleware.js"
 import { authorizeRoles } from "../middleware/role.middleware.js"

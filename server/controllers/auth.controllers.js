@@ -9,7 +9,7 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js"
 
 const generateAccessTokenandRefreshToken = async (userId) => {
     const user = await User.findById(userId)
-    
+
     const accessToken = await user.generateAccessToken()
     const refreshToken = await user.generateRefreshToken()
     user.refreshToken = refreshToken
@@ -153,18 +153,13 @@ const loginUser = asyncHandler(async (req, res) => {
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict"
     }
-    return res.status(200).cookie("refreshToken", refreshToken, options).cookie("accessToken", accessToken, options).json(
+    return res.status(200).cookie("refreshToken", refreshToken, options).json(
         new ApiResponse(200, { user: safeUser, accessToken }, "Login successful")
     )
 })
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
-    const incomingRefreshToken =
-        req.cookies?.refreshToken ||
-        req.body?.refreshToken ||
-        req.header("Authorization")?.replace("Bearer ", "")
-
-        
+    const incomingRefreshToken = req.cookies?.refreshToken
 
     if (!incomingRefreshToken) {
         throw new ApiErrors(401, "Refresh token not found. Please log in again.")
@@ -188,9 +183,6 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     const { accessToken, refreshToken } =
         await generateAccessTokenandRefreshToken(user._id)
 
-        console.log("New access token generated:", accessToken)
-        console.log("New refresh token generated:", refreshToken)
-
     const options = {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
@@ -200,11 +192,10 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     return res
         .status(200)
         .cookie("refreshToken", refreshToken, options)
-        .cookie("accessToken", accessToken, options)
         .json(
             new ApiResponse(
                 200,
-                { accessToken, refreshToken },
+                { accessToken },
                 "Access token refreshed successfully"
             )
         )
@@ -231,7 +222,6 @@ const logOutUser = asyncHandler(async (req, res) => {
     return res
         .status(200)
         .clearCookie("refreshToken", options)
-        .clearCookie("accessToken", options)
         .json(
             new ApiResponse(200, null, "Logged out successfully")
         )

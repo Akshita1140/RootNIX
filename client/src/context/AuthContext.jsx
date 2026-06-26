@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react"
-import api from "@/services/api"
+import api, { setAccessToken } from "@/services/api"
 
 const AuthContext = createContext(null)
 
@@ -25,23 +25,15 @@ export const AuthProvider = ({ children }) => {
             }
         } catch (error) {
             setUser(null)
-            localStorage.removeItem("accessToken")
-            localStorage.removeItem("user")
+            setAccessToken(null)
         } finally {
             setAuthLoading(false)
         }
     }
 
-    const loginUser = (userData, accessToken) => {
+    const loginUser = (userData, token) => {
         setUser(userData)
-
-        if (userData) {
-            localStorage.setItem("user", JSON.stringify(userData))
-        }
-
-        if (accessToken) {
-            localStorage.setItem("accessToken", accessToken)
-        }
+        if (token) setAccessToken(token)  // ← memory only, no localStorage
     }
 
     const logoutUser = async () => {
@@ -51,11 +43,9 @@ export const AuthProvider = ({ children }) => {
             console.log(error)
         } finally {
             setUser(null)
-            localStorage.removeItem("accessToken")
-            localStorage.removeItem("user")
+            setAccessToken(null)  // ← clear memory
         }
     }
-
     useEffect(() => {
         checkAuth()
     }, [])

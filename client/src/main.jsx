@@ -8,12 +8,11 @@ import "./index.css"
 import { AuthProvider } from "./context/AuthContext.jsx"
 
 createRoot(document.getElementById("root")).render(
-    <StrictMode>
-        <BrowserRouter>
-            <AuthProvider>
-                <App />
-                <Toaster position="top-right" />
-            </AuthProvider>
-        </BrowserRouter>
-    </StrictMode>
+
+    <BrowserRouter>
+        <AuthProvider>
+            <App />
+            <Toaster position="top-right" />
+        </AuthProvider>
+    </BrowserRouter>
 )
