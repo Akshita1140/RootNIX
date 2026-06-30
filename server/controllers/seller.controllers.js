@@ -191,7 +191,7 @@ const getSellerDashboardStats = asyncHandler(async (req, res) => {
     const stats = await Product.aggregate([
         {
             $match: {
-                seller: sellerProfile._id,
+                seller: req.user._id,
             },
         },
         {
@@ -277,7 +277,7 @@ const deleteSellerProfile = asyncHandler(async (req, res) => {
 
     // Step 3: Check if seller has products linked with this seller profile
     const productCount = await Product.countDocuments({
-        seller: sellerProfile._id,
+        seller: req.user._id,
     })
 
     // Step 4: If products exist, prevent deletion
