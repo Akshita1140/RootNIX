@@ -78,7 +78,7 @@ const addToCart = asyncHandler(async (req, res) => {
     }
 
     // 7. Find user's cart using req.user._id
-    const userCart = await Cart.findOne({
+    let userCart = await Cart.findOne({
         userId: req.user._id
     })
     // Cart.findOne({ userId: req.user._id })
@@ -290,3 +290,11 @@ const clearCart = asyncHandler(async (req, res) => {
         )
     )
 })
+
+export {
+    getCart,
+    addToCart,
+    updateCartItem,
+    removeFromCart,
+    clearCart
+}
