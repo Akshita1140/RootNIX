@@ -104,7 +104,7 @@ const getAllProducts = asyncHandler(async (req, res) => {
 // ─── GET /api/v1/products/:id ───────────────────────────────────────
 // getProductById
 const getProductById = asyncHandler(async (req, res) => {
-    const { productId } = req.params.id
+    const { productId } = req.params
 
     //
     // 2. FIND product:
@@ -200,7 +200,7 @@ const createProduct = asyncHandler(async (req, res) => {
 // updateProduct
 // middleware needed: verifyJWT, upload.array("images", 5) (optional new images)
 const updateProduct = asyncHandler(async (req, res) => {
-    const { productId } = req.params.id
+    const { productId } = req.params
     if (!productId) {
         throw new ApiErrors(404, "Product not found")
     }
@@ -264,7 +264,7 @@ const updateProduct = asyncHandler(async (req, res) => {
 // ─── DELETE /api/v1/products/:id ────────────────────────────────────
 // deleteProduct
 const deleteProduct = asyncHandler(async (req, res) => {
-    const { productId } = req.params.id
+    const { productId } = req.params
     //
     // 2. FIND product → if not found throw 404
     const product = await Product.findById(productId)

@@ -15,6 +15,13 @@ const router = Router()
 
 
 //Pbulic Routes
+router.route("/my-listings")
+    .get(
+        verifyJWT,
+        authorizeRoles("seller", "admin"),
+        getMyListings
+    )
+
 router.route("/").get(getAllProducts)
 // Product detail page
 router.route("/:productId")
@@ -23,17 +30,6 @@ router.route("/:productId")
 // Seller public storefront
 router.route("/seller/:sellerId")
     .get(getProductsBySeller)
-
-
-// ===================== SELLER ROUTES =====================
-
-// Seller dashboard listings
-router.route("/my-listings")
-    .get(
-        verifyJWT,
-        authorizeRoles("seller", "admin"),
-        getMyListings
-    )
 
 // Create product
 router.route("/")
