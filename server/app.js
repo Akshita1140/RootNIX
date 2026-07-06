@@ -18,6 +18,7 @@ app.use(cookieParser())
 import authRoutes from './routes/auth.routes.js'
 import sellerRoutes from "./routes/seller.routes.js"
 import productsRoutes from "./routes/product.routes.js"
+import paymentsRoutes from "./routes/payments.routes.js"
 import cartRoutes from "./routes/cart.routes.js"
 import orderRoutes from "./routes/order.routes.js"
 
@@ -25,6 +26,7 @@ import orderRoutes from "./routes/order.routes.js"
 app.use('/api/v1/users',authRoutes)
 app.use("/api/v1/sellers", sellerRoutes)
 app.use("/api/v1/products",productsRoutes)
+app.use("/api/v1/payments",paymentsRoutes)
 app.use("/api/v1/cart",cartRoutes)
 app.use("/api/v1/orders",orderRoutes)
 

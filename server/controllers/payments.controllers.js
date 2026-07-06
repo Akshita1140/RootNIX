@@ -8,7 +8,7 @@ export const createRazorpayOrder = asyncHandler(async (req, res) => {
   try {
     const userId = req.user._id;
 
-    const cart = await Cart.findOne({ user: userId }).populate("items.product");
+    const cart = await Cart.findOne({ userId }).populate("items.productId");
     if (!cart || cart.items.length === 0) {
     throw new ApiErrors(400,"Cart is Empty.")
     }
