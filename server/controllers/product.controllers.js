@@ -156,7 +156,6 @@ const createProduct = asyncHandler(async (req, res) => {
 
     //sequential upload
     const images = []
-
     for (const file of req.files) {
         const uploads = await uploadOnCloudinary(file.path)
 
@@ -164,7 +163,7 @@ const createProduct = asyncHandler(async (req, res) => {
             throw new ApiErrors(500, `Failed to upload image: ${file.originalname}`)
         }
         images.push({
-            url: uploads.url,
+            url: uploads,
             publicId: uploads.public_id
         })
     }

@@ -9,7 +9,8 @@ import {
     deleteProduct
 } from "../controllers/product.controllers.js"
 import { verifyJWT } from "../middleware/auth.middleware.js"
-import { authorizeRoles } from "../middleware/role.middleware.js"
+import { authorizeRoles, requireApprovedSeller } from "../middleware/role.middleware.js"
+import { upload } from "../middleware/multer.middleware.js"
 
 const router = Router()
 
@@ -19,6 +20,7 @@ router.route("/my-listings")
     .get(
         verifyJWT,
         authorizeRoles("seller", "admin"),
+        requireApprovedSeller,
         getMyListings
     )
 
@@ -36,6 +38,8 @@ router.route("/")
     .post(
         verifyJWT,
         authorizeRoles("seller", "admin"),
+        requireApprovedSeller,
+        upload.array("images", 5),
         createProduct
     )
 
@@ -44,6 +48,8 @@ router.route("/:productId")
     .patch(
         verifyJWT,
         authorizeRoles("seller", "admin"),
+        requireApprovedSeller,
+        upload.array("images", 5),
         updateProduct
     )
 
@@ -52,6 +58,7 @@ router.route("/:productId")
     .delete(
         verifyJWT,
         authorizeRoles("seller", "admin"),
+        requireApprovedSeller,
         deleteProduct
     )
 
