@@ -8,6 +8,7 @@ import {
     getCurrentUser,
     forgotPassword,
     resetPassword,
+    updateProfile,
     updateAvatar,
     resendOtp,
 } from '../controllers/auth.controllers.js'
@@ -29,6 +30,7 @@ router.route('/resend-otp').post(resendOtp)
 //Secured route 
 router.route('/logout').post(verifyJWT, logOutUser)
 router.route('/current-user').get(verifyJWT, getCurrentUser)
+router.route('/update-profile').patch(verifyJWT, updateProfile)
 router.patch(
     "/avatar",
     verifyJWT,

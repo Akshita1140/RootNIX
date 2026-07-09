@@ -106,7 +106,7 @@ const Home = () => {
                         </button>
 
                         <button
-                            onClick={() => navigate("/login")}
+                            onClick={() => navigate(user ? "/profile" : "/login")}
                             className="rounded-full p-2 text-[#414844] transition hover:bg-[#e7e9e5]"
                         >
                             <UserCircle className="h-5 w-5" />
@@ -121,7 +121,7 @@ const Home = () => {
                             </Button>
                         ) : user ? (
                             <Button
-                                onClick={() => navigate("/dashboard")}
+                                onClick={() => navigate("/profile")}
                                 className="hidden rounded-full bg-[#03271a] px-6 text-white hover:bg-[#03271a]/90 md:flex"
                             >
                                 Manage Account

@@ -6,6 +6,7 @@ import Home from "./pages/Home"
 import CartPage from "./pages/CartPage"
 import CheckoutPage from "./pages/CheckoutPage"
 import OrderConfirmationPage from "./pages/OrderConfirmationPage"
+import UserProfilePage from "./pages/UserProfilePage"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 function App() {
@@ -37,6 +38,14 @@ function App() {
                 element={
                     <ProtectedRoute>
                         <OrderConfirmationPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/profile"
+                element={
+                    <ProtectedRoute>
+                        <UserProfilePage />
                     </ProtectedRoute>
                 }
             />

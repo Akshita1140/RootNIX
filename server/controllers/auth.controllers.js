@@ -314,6 +314,35 @@ const resetPassword = asyncHandler(async (req, res) => {
     )
 })
 
+const updateProfile = asyncHandler(async (req, res) => {
+    const { name, city, pincode, lat, lng } = req.body
+
+    const updates = {}
+    if (name !== undefined && String(name).trim() !== "") updates.name = name
+    if (city !== undefined && String(city).trim() !== "") updates.city = city
+    if (pincode !== undefined && String(pincode).trim() !== "") updates.pincode = pincode
+    if (lat !== undefined && lat !== "") updates.latitude = lat
+    if (lng !== undefined && lng !== "") updates.longitude = lng
+
+    if (Object.keys(updates).length === 0) {
+        throw new ApiErrors(400, "No valid fields provided to update")
+    }
+
+    const user = await User.findByIdAndUpdate(
+        req.user._id,
+        { $set: updates },
+        { new: true, runValidators: true }
+    ).select("-password -otp -otpExpiry -refreshToken")
+
+    if (!user) {
+        throw new ApiErrors(404, "User not found")
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200, user, "Profile updated successfully")
+    )
+})
+
 const updateAvatar = asyncHandler(async (req, res) => {
     const avatarLocalPath = req.file?.path
 
@@ -401,6 +430,7 @@ export {
     getCurrentUser,
     forgotPassword,
     resetPassword,
+    updateProfile,
     updateAvatar,
     resendOtp
 }
