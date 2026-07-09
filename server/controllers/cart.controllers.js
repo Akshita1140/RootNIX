@@ -70,6 +70,11 @@ const addToCart = asyncHandler(async (req, res) => {
         throw new ApiErrors(400, "Product is unavailable")
     }
 
+    // 5b. Prevent sellers from buying their own listed products
+    if (product.seller.toString() === req.user._id.toString()) {
+        throw new ApiErrors(400, "You cannot purchase your own listed product")
+    }
+
     // 6. Check stock availability
     // requested quantity should not exceed product.stock
     if (quantity > product.stock) {
@@ -125,11 +130,17 @@ const addToCart = asyncHandler(async (req, res) => {
     // 9. Trigger pre-save totals calculation
     await userCart.save()
 
-    // 13. Return updated cart in response
+    // 13. Return updated cart in response, populated so the frontend
+    // gets full product details, not just raw ObjectIds
+    const populatedCart = await userCart.populate(
+        "items.productId",
+        "name price images stock isAvailable"
+    )
+
     res.status(200).json(
         new ApiResponse(
             200,
-            userCart,
+            populatedCart,
             "Product added to cart successfully!"
         )
     )
@@ -187,10 +198,14 @@ const updateCartItem = asyncHandler(async (req, res) => {
         )
 
         await cart.save()
+        const populatedCart = await cart.populate(
+            "items.productId",
+            "name price images stock isAvailable"
+        )
         return res.status(200).json(
             new ApiResponse(
                 200,
-                cart,
+                populatedCart,
                 "Item removed from cart"
             )
         )
@@ -216,11 +231,17 @@ const updateCartItem = asyncHandler(async (req, res) => {
     // 8. Save
     await cart.save()
 
-    // 9. Return updated cart
+    // 9. Return updated cart, re-populated so the frontend has
+    // full product details (name/price/images), not just raw ObjectIds
+    const populatedCart = await cart.populate(
+        "items.productId",
+        "name price images stock isAvailable"
+    )
+
     return res.status(200).json(
         new ApiResponse(
             200,
-            cart,
+            populatedCart,
             "Cart updated successfully"
         )
     )
@@ -252,11 +273,17 @@ const removeFromCart = asyncHandler(async (req, res) => {
     // 4. Save cart
     await cart.save()
 
-    // 5. Return response
+    // 5. Return response, populated so remaining items keep their
+    // product details
+    const populatedCart = await cart.populate(
+        "items.productId",
+        "name price images stock isAvailable"
+    )
+
     return res.status(200).json(
         new ApiResponse(
             200,
-            cart,
+            populatedCart,
             "Item removed successfully"
         )
     )

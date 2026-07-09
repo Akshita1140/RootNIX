@@ -4,7 +4,7 @@ import { ApiErrors } from "../utils/ApiErrors.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import mongoose from "mongoose";
 import { Product } from "../models/Products.models.js";
-import {Order} from "../models/order.models.js"
+import Order from "../models/order.models.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import razorpayInstance from "../utils/razorpay.js";
 import { PaymentLog } from "../models/paymentLog.models.js";

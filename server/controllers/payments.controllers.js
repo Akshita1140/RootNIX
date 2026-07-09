@@ -14,14 +14,14 @@ export const createRazorpayOrder = asyncHandler(async (req, res) => {
     }
 
     const amount = cart.items.reduce(
-      (sum, item) => sum + item.product.price * item.quantity,
+      (sum, item) => sum + item.productId.price * item.quantity,
       0
     );
 
     const options = {
       amount: amount * 100,
       currency: "INR",
-      receipt: `receipt_${Date.now()}_${userId}`,
+      receipt: `rcpt_${Date.now()}`,
     };
 
     const razorpayOrder = await razorpayInstance.orders.create(options);

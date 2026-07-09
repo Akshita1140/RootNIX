@@ -31,5 +31,6 @@ app.use("/api/v1/cart",cartRoutes)
 app.use("/api/v1/orders",orderRoutes)
 
 
+console.log(process.cwd())
 
 export {app}

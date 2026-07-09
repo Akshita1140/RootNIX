@@ -1,4 +1,7 @@
+import { useEffect } from "react"
 import { useNavigate } from "react-router-dom"
+import { useDispatch, useSelector } from "react-redux"
+import toast from "react-hot-toast"
 import { useAuth } from "@/context/AuthContext.jsx"
 import {
     ArrowRight,
@@ -16,12 +19,43 @@ import {
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { rarePlants, plantSwaps } from "@/data/samplesData"
+import { plantSwaps } from "@/data/samplesData"
+import { fetchProducts } from "@/redux/productSlice"
+import { fetchCart, addItemToCart } from "@/redux/cartSlice"
 
 
 const Home = () => {
     const navigate = useNavigate()
+    const dispatch = useDispatch()
     const { user, authLoading } = useAuth()
+
+    const {
+        items: products,
+        status: productsStatus,
+    } = useSelector((state) => state.products)
+    const { totalItems: cartItemCount, mutating: cartMutating } = useSelector(
+        (state) => state.cart
+    )
+
+    useEffect(() => {
+        dispatch(fetchProducts({ sortBy: "newest", limit: 6 }))
+    }, [dispatch])
+
+    useEffect(() => {
+        if (user) dispatch(fetchCart())
+    }, [user, dispatch])
+
+    const handleAddToCart = (product) => {
+        if (!user) {
+            toast.error("Please log in to add items to your cart")
+            navigate("/login")
+            return
+        }
+        dispatch(addItemToCart({ productId: product._id, quantity: 1 }))
+            .unwrap()
+            .then(() => toast.success(`${product.name} added to cart`))
+            .catch((err) => toast.error(err || "Failed to add to cart"))
+    }
 
     return (
         <div className="min-h-screen overflow-x-hidden bg-[#f9faf6] text-[#1a1c1a]">
@@ -59,8 +93,16 @@ const Home = () => {
                             />
                         </div>
 
-                        <button className="rounded-full p-2 text-[#414844] transition hover:bg-[#e7e9e5]">
+                        <button
+                            onClick={() => navigate("/cart")}
+                            className="relative rounded-full p-2 text-[#414844] transition hover:bg-[#e7e9e5]"
+                        >
                             <ShoppingCart className="h-5 w-5" />
+                            {cartItemCount > 0 && (
+                                <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#502f09] text-[10px] font-bold text-white">
+                                    {cartItemCount}
+                                </span>
+                            )}
                         </button>
 
                         <button
@@ -197,53 +239,71 @@ const Home = () => {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        {rarePlants.map((plant) => (
-                            <div
-                                key={plant.id}
-                                className="group overflow-hidden rounded-3xl border border-[#c1c8c2]/20 bg-[#f9faf6] shadow-[0_24px_60px_-30px_rgba(10,20,16,0.25)] transition duration-500 hover:-translate-y-2"
-                            >
-                                <div className="relative h-72 overflow-hidden">
-                                    <img
-                                        src={plant.image}
-                                        alt={plant.name}
-                                        className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
-                                    />
+                    {productsStatus === "loading" && products.length === 0 ? (
+                        <div className="py-12 text-center text-[#414844]">
+                            Loading plants...
+                        </div>
+                    ) : products.length === 0 ? (
+                        <div className="py-12 text-center text-[#414844]">
+                            No plants listed yet.
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                            {products.map((plant) => (
+                                <div
+                                    key={plant._id}
+                                    className="group overflow-hidden rounded-3xl border border-[#c1c8c2]/20 bg-[#f9faf6] shadow-[0_24px_60px_-30px_rgba(10,20,16,0.25)] transition duration-500 hover:-translate-y-2"
+                                >
+                                    <div className="relative h-72 overflow-hidden bg-[#e2e3df]">
+                                        {plant.images?.[0]?.url && (
+                                            <img
+                                                src={plant.images[0].url}
+                                                alt={plant.name}
+                                                className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
+                                            />
+                                        )}
 
-                                    <span className="absolute right-4 top-4 rounded-full bg-white/70 px-3 py-1.5 text-xs font-bold text-[#03271a] backdrop-blur-xl">
-                                        {plant.tag}
-                                    </span>
-                                </div>
+                                        <span className="absolute right-4 top-4 rounded-full bg-white/70 px-3 py-1.5 text-xs font-bold text-[#03271a] backdrop-blur-xl">
+                                            {plant.category}
+                                        </span>
+                                    </div>
 
-                                <div className="p-6">
-                                    <div className="mb-5 flex items-start justify-between">
-                                        <div>
-                                            <h4 className="text-xl font-bold text-[#03271a]">
-                                                {plant.name}
-                                            </h4>
-                                            <p className="text-xs uppercase tracking-wide text-[#414844]">
-                                                Verified Seller: {plant.seller}
-                                            </p>
+                                    <div className="p-6">
+                                        <div className="mb-5 flex items-start justify-between">
+                                            <div>
+                                                <h4 className="text-xl font-bold text-[#03271a]">
+                                                    {plant.name}
+                                                </h4>
+                                                {plant.seller?.fullName && (
+                                                    <p className="text-xs uppercase tracking-wide text-[#414844]">
+                                                        Verified Seller: {plant.seller.fullName}
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            <button className="text-[#414844] transition hover:text-[#03271a]">
+                                                <Heart className="h-5 w-5" />
+                                            </button>
                                         </div>
 
-                                        <button className="text-[#414844] transition hover:text-[#03271a]">
-                                            <Heart className="h-5 w-5" />
-                                        </button>
-                                    </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-2xl font-bold text-[#03271a]">
+                                                ₹{plant.price}
+                                            </span>
 
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-2xl font-bold text-[#03271a]">
-                                            {plant.price}
-                                        </span>
-
-                                        <Button className="rounded-xl bg-[#03271a] text-white hover:bg-[#03271a]/90">
-                                            Buy Now
-                                        </Button>
+                                            <Button
+                                                onClick={() => handleAddToCart(plant)}
+                                                disabled={cartMutating || plant.stock === 0}
+                                                className="rounded-xl bg-[#03271a] text-white hover:bg-[#03271a]/90 disabled:opacity-50"
+                                            >
+                                                {plant.stock === 0 ? "Out of Stock" : "Add to Cart"}
+                                            </Button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </section>
 
