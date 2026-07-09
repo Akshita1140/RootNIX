@@ -204,9 +204,16 @@ const updateProduct = asyncHandler(async (req, res) => {
         throw new ApiErrors(404, "Product not found")
     }
     const product = await Product.findById(productId)
-    if (product.seller.toString() !== req.user._id.toString()) {
-        throw new ApiErrors("Not your listing.")
+    if (!product) {
+        throw new ApiErrors(404, "Product not found")
     }
+
+    const isSeller = product.seller.toString() === req.user._id.toString()
+    const isAdmin = req.user.role === "admin"
+    if (!isSeller && !isAdmin) {
+        throw new ApiErrors(403, "Not your listing.")
+    }
+
     const { name,
         description,
         price,
@@ -219,12 +226,24 @@ const updateProduct = asyncHandler(async (req, res) => {
         isAvailable
     } = req.body
 
+    if (name !== undefined) product.name = name
+    if (description !== undefined) product.description = description
+    if (price !== undefined) product.price = price
+    if (category !== undefined) product.category = category
+    if (stock !== undefined) product.stock = stock
+    if (careLevel !== undefined) product.careLevel = careLevel
+    if (lightRequirement !== undefined) product.lightRequirement = lightRequirement
+    if (wateringFrequency !== undefined) product.wateringFrequency = wateringFrequency
+    if (soilType !== undefined) product.soilType = soilType
+    if (isAvailable !== undefined) product.isAvailable = isAvailable === "true" || isAvailable === true
 
-    if (req.files || req.files.length > 0) {
+    if (req.files && req.files.length > 0) {
 
-        //delete the old 
+        //delete the old
         for (const file of product.images) {
-            await cloudinary.uploader.destroy(image.publicId)
+            if (file.publicId) {
+                await cloudinary.uploader.destroy(file.publicId)
+            }
         }
 
         const newimages = []
@@ -257,6 +276,7 @@ const updateProduct = asyncHandler(async (req, res) => {
 
 
 })
+
 
 
 
