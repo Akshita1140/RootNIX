@@ -30,7 +30,7 @@ const getAllProducts = asyncHandler(async (req, res) => {
     //
     // 2. BUILD a filter object:
     //    - only add a field to the filter if that query param actually exists
-    const filter = {
+   const filter = {
         isAvailable: true,
         stock: { $gt: 0 }
     }
@@ -41,6 +41,12 @@ const getAllProducts = asyncHandler(async (req, res) => {
             { name: { $regex: search, $options: "i" } },
             { description: { $regex: search, $options: "i" } },
         ];
+    }
+    if (category) {
+        filter.category = category;
+    }
+    if (careLevel) {
+        filter.careLevel = careLevel;
     }
     if (minPrice || maxPrice) {
         filter.price = {};
