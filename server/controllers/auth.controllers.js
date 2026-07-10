@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken"
-import { asyncHandler } from '../utils/asynchandler.js'
+import { asyncHandler } from '../utils/asyncHandler.js'
 import { ApiErrors } from '../utils/ApiErrors.js'
 import { ApiResponse } from '../utils/ApiResponse.js'
 import User from '../models/User.models.js'
@@ -17,6 +17,16 @@ const generateAccessTokenandRefreshToken = async (userId) => {
     await user.save({ validateBeforeSave: false })
     return { accessToken, refreshToken }
 }
+
+// Shared refreshToken cookie options.
+// sameSite must be "none" (with secure:true) when frontend and backend
+// are on different origins in production (e.g. Vercel + Render) — "strict"
+// silently blocks the cookie on cross-site requests and breaks refresh/login-persistence.
+const cookieOptions = () => ({
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+})
 
 const registerUser = asyncHandler(async (req, res) => {
 
@@ -148,11 +158,7 @@ const loginUser = asyncHandler(async (req, res) => {
     // 10. Safe user fetch karo without password
     const safeUser = await User.findById(user._id).select("-password -otp -otpExpiry -refreshToken")
     // 11. Response bhejo: user + token
-    const options = {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict"
-    }
+    const options = cookieOptions()
     return res.status(200).cookie("refreshToken", refreshToken, options).json(
         new ApiResponse(200, { user: safeUser, accessToken }, "Login successful")
     )
@@ -183,11 +189,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     const { accessToken, refreshToken } =
         await generateAccessTokenandRefreshToken(user._id)
 
-    const options = {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict"
-    }
+    const options = cookieOptions()
 
     return res
         .status(200)
@@ -213,11 +215,7 @@ const logOutUser = asyncHandler(async (req, res) => {
     user.refreshToken = null
     await user.save({ validateBeforeSave: false })
 
-    const options = {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict"
-    }
+    const options = cookieOptions()
 
     return res
         .status(200)
