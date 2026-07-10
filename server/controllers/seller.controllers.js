@@ -2,7 +2,7 @@ import { SellerProfile } from "../models/SellerProfile.models.js"
 import { Product } from "../models/Products.models.js"
 import { ApiErrors } from "../utils/ApiErrors.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
-import { asyncHandler } from "../utils/asynchandler.js"
+import { asyncHandler } from "../utils/asyncHandler.js"
 
 // @desc    Create seller profile
 // @route   POST /api/v1/sellers/profile
