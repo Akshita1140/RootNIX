@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useDispatch, useSelector } from "react-redux"
 import toast from "react-hot-toast"
@@ -8,37 +8,36 @@ import {
     Brain,
     Camera,
     Droplets,
-    Heart,
     Repeat,
-    Search,
     ShieldCheck,
     ShoppingBag,
-    ShoppingCart,
     Sun,
-    UserCircle,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import Navbar from "@/components/Navbar"
+import ProductGlider from "@/components/ProductGlider"
 import { plantSwaps } from "@/data/samplesData"
 import { fetchProducts } from "@/redux/productSlice"
 import { fetchCart, addItemToCart } from "@/redux/cartSlice"
+
+const FEATURED_LIMIT = 6
 
 
 const Home = () => {
     const navigate = useNavigate()
     const dispatch = useDispatch()
-    const { user, authLoading } = useAuth()
+    const { user } = useAuth()
+    const [search, setSearch] = useState("")
 
     const {
         items: products,
         status: productsStatus,
     } = useSelector((state) => state.products)
-    const { totalItems: cartItemCount, mutating: cartMutating } = useSelector(
-        (state) => state.cart
-    )
+    const { mutating: cartMutating } = useSelector((state) => state.cart)
 
     useEffect(() => {
-        dispatch(fetchProducts({ sortBy: "newest", limit: 6 }))
+        dispatch(fetchProducts({ sortBy: "newest", limit: FEATURED_LIMIT }))
     }, [dispatch])
 
     useEffect(() => {
@@ -57,96 +56,18 @@ const Home = () => {
             .catch((err) => toast.error(err || "Failed to add to cart"))
     }
 
+    const handleSearchSubmit = () => {
+        navigate(search ? `/marketplace?search=${encodeURIComponent(search)}` : "/marketplace")
+    }
+
     return (
         <div className="min-h-screen overflow-x-hidden bg-[#f9faf6] text-[#1a1c1a]">
-            {/* Navbar */}
-            <nav className="fixed top-0 z-50 w-full border-b border-[#c1c8c2]/30 bg-[#f9faf6]/85 shadow-sm backdrop-blur-xl">
-                <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 md:px-16">
-                    <div className="flex items-center gap-8">
-                        <button
-                            onClick={() => navigate("/")}
-                            className="text-3xl font-extrabold tracking-tighter text-[#03271a]"
-                        >
-                            RootNIX
-                        </button>
-
-                        <div className="hidden items-center gap-6 md:flex">
-                            <a className="font-semibold text-[#03271a]">Marketplace</a>
-                            <a className="text-[#414844] transition hover:text-[#03271a]">
-                                AI Identifier
-                            </a>
-                            <a className="text-[#414844] transition hover:text-[#03271a]">
-                                Exchange
-                            </a>
-                            <a className="text-[#414844] transition hover:text-[#03271a]">
-                                Community
-                            </a>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                        <div className="hidden items-center rounded-full border border-[#c1c8c2]/30 bg-[#f3f4f0] px-4 py-2 lg:flex">
-                            <Search className="mr-2 h-4 w-4 text-[#727974]" />
-                            <input
-                                className="w-44 bg-transparent text-sm outline-none placeholder:text-[#727974]"
-                                placeholder="Find a plant..."
-                            />
-                        </div>
-
-                        <button
-                            onClick={() => navigate("/cart")}
-                            className="relative rounded-full p-2 text-[#414844] transition hover:bg-[#e7e9e5]"
-                        >
-                            <ShoppingCart className="h-5 w-5" />
-                            {cartItemCount > 0 && (
-                                <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#502f09] text-[10px] font-bold text-white">
-                                    {cartItemCount}
-                                </span>
-                            )}
-                        </button>
-
-                        <button
-                            onClick={() =>
-                                navigate(
-                                    user
-                                        ? user.role === "seller" || user.role === "admin"
-                                            ? "/seller-dashboard"
-                                            : "/profile"
-                                        : "/login"
-                                )
-                            }
-                            className="rounded-full p-2 text-[#414844] transition hover:bg-[#e7e9e5]"
-                        >
-                            <UserCircle className="h-5 w-5" />
-                        </button>
-
-                        {authLoading ? (
-                            <Button
-                                disabled
-                                className="hidden rounded-full bg-[#03271a]/70 px-6 text-white md:flex"
-                            >
-                                Checking...
-                            </Button>
-                        ) : user ? (
-                            <Button
-                                onClick={() =>
-                                    navigate(user.role === "seller" || user.role === "admin" ? "/seller-dashboard" : "/profile")
-                                }
-                                className="hidden rounded-full bg-[#03271a] px-6 text-white hover:bg-[#03271a]/90 md:flex"
-                            >
-                                Manage Account
-                            </Button>
-                        ) : (
-                            <Button
-                                onClick={() => navigate("/register")}
-                                className="hidden rounded-full bg-[#03271a] px-6 text-white hover:bg-[#03271a]/90 md:flex"
-                            >
-                                Get Started
-                            </Button>
-                        )}
-                    </div>
-                </div>
-            </nav>
+            <Navbar
+                active=""
+                searchValue={search}
+                onSearchChange={setSearch}
+                onSearchSubmit={handleSearchSubmit}
+            />
 
             {/* Hero Section */}
             <header className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-5 pb-20 pt-36 md:px-16 md:pb-28 md:pt-44 lg:grid-cols-2">
@@ -167,7 +88,10 @@ const Home = () => {
                     </p>
 
                     <div className="flex flex-col gap-4 sm:flex-row">
-                        <Button className="rounded-full bg-[#03271a] px-8 py-6 text-base font-semibold text-white shadow-xl shadow-[#03271a]/15 hover:bg-[#03271a]/90">
+                        <Button
+                            onClick={() => navigate("/marketplace")}
+                            className="rounded-full bg-[#03271a] px-8 py-6 text-base font-semibold text-white shadow-xl shadow-[#03271a]/15 hover:bg-[#03271a]/90"
+                        >
                             Explore Marketplace
                             <ArrowRight className="ml-2 h-5 w-5" />
                         </Button>
@@ -234,7 +158,7 @@ const Home = () => {
                 </div>
             </header>
 
-            {/* Rare Plants Section - data injected using map */}
+            {/* Featured Plants Glider - trimmed preview, full catalog lives on /marketplace */}
             <section className="bg-white py-24">
                 <div className="mx-auto max-w-7xl px-5 md:px-16">
                     <div className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
@@ -243,10 +167,19 @@ const Home = () => {
                                 Curated Rarities
                             </h2>
                             <p className="max-w-md text-[#414844]">
-                                Weekly selection of exceptional species from verified botanical
-                                collectors worldwide.
+                                A quick look at this week's picks. Swipe through, then head to
+                                the full marketplace for every listing and filter.
                             </p>
                         </div>
+
+                        <Button
+                            variant="secondary"
+                            onClick={() => navigate("/marketplace")}
+                            className="w-fit rounded-full bg-[#e7e9e5] px-6 py-6 font-semibold text-[#03271a] hover:bg-[#e2e3df]"
+                        >
+                            View Full Marketplace
+                            <ArrowRight className="ml-2 h-5 w-5" />
+                        </Button>
                     </div>
 
                     {productsStatus === "loading" && products.length === 0 ? (
@@ -258,61 +191,11 @@ const Home = () => {
                             No plants listed yet.
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                            {products.map((plant) => (
-                                <div
-                                    key={plant._id}
-                                    className="group overflow-hidden rounded-3xl border border-[#c1c8c2]/20 bg-[#f9faf6] shadow-[0_24px_60px_-30px_rgba(10,20,16,0.25)] transition duration-500 hover:-translate-y-2"
-                                >
-                                    <div className="relative h-72 overflow-hidden bg-[#e2e3df]">
-                                        {plant.images?.[0]?.url && (
-                                            <img
-                                                src={plant.images[0].url}
-                                                alt={plant.name}
-                                                className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
-                                            />
-                                        )}
-
-                                        <span className="absolute right-4 top-4 rounded-full bg-white/70 px-3 py-1.5 text-xs font-bold text-[#03271a] backdrop-blur-xl">
-                                            {plant.category}
-                                        </span>
-                                    </div>
-
-                                    <div className="p-6">
-                                        <div className="mb-5 flex items-start justify-between">
-                                            <div>
-                                                <h4 className="text-xl font-bold text-[#03271a]">
-                                                    {plant.name}
-                                                </h4>
-                                                {plant.seller?.fullName && (
-                                                    <p className="text-xs uppercase tracking-wide text-[#414844]">
-                                                        Verified Seller: {plant.seller.fullName}
-                                                    </p>
-                                                )}
-                                            </div>
-
-                                            <button className="text-[#414844] transition hover:text-[#03271a]">
-                                                <Heart className="h-5 w-5" />
-                                            </button>
-                                        </div>
-
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-2xl font-bold text-[#03271a]">
-                                                ₹{plant.price}
-                                            </span>
-
-                                            <Button
-                                                onClick={() => handleAddToCart(plant)}
-                                                disabled={cartMutating || plant.stock === 0}
-                                                className="rounded-xl bg-[#03271a] text-white hover:bg-[#03271a]/90 disabled:opacity-50"
-                                            >
-                                                {plant.stock === 0 ? "Out of Stock" : "Add to Cart"}
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                        <ProductGlider
+                            products={products}
+                            onAddToCart={handleAddToCart}
+                            cartMutating={cartMutating}
+                        />
                     )}
                 </div>
             </section>
