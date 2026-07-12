@@ -10,6 +10,7 @@ import CheckoutPage from "./pages/CheckoutPage"
 import OrderConfirmationPage from "./pages/OrderConfirmationPage"
 import UserProfilePage from "./pages/UserProfilePage"
 import SellerDashboardPage from "./pages/SellerDashboardPage"
+import AdminDashboardPage from "./pages/AdminDashboardPage"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 function App() {
@@ -59,6 +60,14 @@ function App() {
                 element={
                     <ProtectedRoute>
                         <SellerDashboardPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/admin"
+                element={
+                    <ProtectedRoute allowedRoles={["admin"]}>
+                        <AdminDashboardPage />
                     </ProtectedRoute>
                 }
             />

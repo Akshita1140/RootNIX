@@ -75,9 +75,11 @@ const Navbar = ({ active, searchValue, onSearchChange, onSearchSubmit }) => {
                         onClick={() =>
                             navigate(
                                 user
-                                    ? user.role === "seller" || user.role === "admin"
-                                        ? "/seller-dashboard"
-                                        : "/profile"
+                                    ? user.role === "admin"
+                                        ? "/admin"
+                                        : user.role === "seller"
+                                            ? "/seller-dashboard"
+                                            : "/profile"
                                     : "/login"
                             )
                         }
@@ -93,7 +95,13 @@ const Navbar = ({ active, searchValue, onSearchChange, onSearchSubmit }) => {
                     ) : user ? (
                         <Button
                             onClick={() =>
-                                navigate(user.role === "seller" || user.role === "admin" ? "/seller-dashboard" : "/profile")
+                                navigate(
+                                    user.role === "admin"
+                                        ? "/admin"
+                                        : user.role === "seller"
+                                            ? "/seller-dashboard"
+                                            : "/profile"
+                                )
                             }
                             className="hidden rounded-full bg-[#03271a] px-6 text-white hover:bg-[#03271a]/90 md:flex"
                         >
