@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { useLocation, useNavigate } from "react-router-dom"
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom"
 import toast from "react-hot-toast"
 import { ArrowLeft, CheckCircle, Loader2, Lock, Timer } from "lucide-react"
 
@@ -14,10 +14,11 @@ import {
 const VerifyOtp = () => {
     const navigate = useNavigate()
     const location = useLocation()
+    const [searchParams] = useSearchParams()
 
     const inputRefs = useRef([])
 
-    const [email] = useState(location.state?.email || "")
+    const [email] = useState(location.state?.email || searchParams.get("email") || "")
     const [otpDigits, setOtpDigits] = useState(["", "", "", "", "", ""])
     const [loading, setLoading] = useState(false)
     const [timeLeft, setTimeLeft] = useState(119)
@@ -137,7 +138,7 @@ const VerifyOtp = () => {
         try {
             setLoading(true)
 
-            const res = await api.post("/users/resend-otp", {
+            const res = await api.post("/users/resend-registration-otp", {
                 email,
             })
 

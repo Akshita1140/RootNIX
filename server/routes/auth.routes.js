@@ -11,6 +11,7 @@ import {
     updateProfile,
     updateAvatar,
     resendOtp,
+    resendRegistrationOtp,
 } from '../controllers/auth.controllers.js'
 import { verifyJWT } from '../middleware/auth.middleware.js'
 import { upload } from "../middleware/multer.middleware.js"
@@ -26,6 +27,7 @@ router.route("/refresh-token").post(refreshAccessToken)
 router.route('/forgot-password').post(forgotPassword)
 router.route('/reset-password').post(resetPassword)
 router.route('/resend-otp').post(resendOtp)
+router.route('/resend-registration-otp').post(resendRegistrationOtp)
 
 //Secured route 
 router.route('/logout').post(verifyJWT, logOutUser)

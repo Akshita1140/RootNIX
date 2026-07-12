@@ -79,7 +79,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: null,
 
-    }
+    },
+    isBanned: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

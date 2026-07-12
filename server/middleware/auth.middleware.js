@@ -15,13 +15,21 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
         if (!user) {
             throw new ApiErrors(401, "Invalid Access Token")
         }
+        if (user.isBanned) {
+            throw new ApiErrors(403, "Your account has been banned. Contact support for details.")
+        }
         req.user = user;
         next()
     } catch (error) {
+        // Re-throw ApiErrors as-is so the real 401 reason (e.g. "Unauthorized request")
+        // reaches the client instead of being masked by a generic message.
         if (error instanceof ApiErrors) {
             throw error
         }
+        // Anything else (jwt malformed/expired, missing ACCESS_TOKEN_SECRET, DB error) —
+        // log the real cause on the server so it's actually debuggable.
         console.error("verifyJWT failed:", error.name, "-", error.message)
         throw new ApiErrors(401, `Token verification failed: ${error.message}`)
     }
 })
+
