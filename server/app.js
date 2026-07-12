@@ -21,6 +21,7 @@ import productsRoutes from "./routes/product.routes.js"
 import paymentsRoutes from "./routes/payments.routes.js"
 import cartRoutes from "./routes/cart.routes.js"
 import orderRoutes from "./routes/order.routes.js"
+import adminRoutes from "./routes/admin.routes.js"
 
 //Routes declaration
 app.use('/api/v1/users',authRoutes)
@@ -29,7 +30,12 @@ app.use("/api/v1/products",productsRoutes)
 app.use("/api/v1/payments",paymentsRoutes)
 app.use("/api/v1/cart",cartRoutes)
 app.use("/api/v1/orders",orderRoutes)
+app.use("/api/v1/admin",adminRoutes)
 
+// Global error handler — must be registered after all routes so it can
+// catch errors passed via next(err) from any route/controller/middleware.
+import { errorHandler } from "./middleware/error.middleware.js"
+app.use(errorHandler)
 
 console.log(process.cwd())
 
