@@ -4,8 +4,19 @@ import cookieParser from "cookie-parser";
 
 const app = express()
 
+// CORS_ORIGIN can be a single URL or a comma-separated list (e.g. Vercel
+// production domain + preview deployments). Falls back to local dev.
+const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:5173")
+    .split(",")
+    .map(o => o.trim())
+
 app.use(cors({
-    origin:process.env.CORS_ORIGIN || "http://localhost:5173",
+    origin: (origin, callback) => {
+        // allow non-browser requests (curl, server-to-server, Render health checks)
+        if (!origin) return callback(null, true)
+        if (allowedOrigins.includes(origin)) return callback(null, true)
+        return callback(new Error(`CORS blocked for origin: ${origin}`))
+    },
     credentials:true
 }))
 
@@ -13,6 +24,11 @@ app.use(express.json({limit:'16kb'}))
 app.use(express.urlencoded({extended:true,limit:'16kb'}))
 app.use(express.static('public'))
 app.use(cookieParser())
+
+// Health check — Render pings this to know the service is alive
+app.get("/health", (req, res) => {
+    res.status(200).json({ status: "ok" })
+})
 
 // Routes
 import authRoutes from './routes/auth.routes.js'
