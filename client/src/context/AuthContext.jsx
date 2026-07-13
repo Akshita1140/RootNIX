@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }) => {
         try {
             await api.post("/users/logout")
         } catch (error) {
-            console.log(error)
+            if (import.meta.env.DEV) console.log(error
         } finally {
             setUser(null)
             setAccessToken(null)  // ← clear memory

@@ -81,8 +81,6 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new ApiErrors(500, "Failed to send OTP email")
     }
 
-    //temp console log for email sending result
-    console.log("OTP email sent:", otpEmail.messageId)
 
     //   // 8. response return karo
     return res.status(201).json(

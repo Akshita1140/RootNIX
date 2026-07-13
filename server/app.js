@@ -53,6 +53,5 @@ app.use("/api/v1/admin",adminRoutes)
 import { errorHandler } from "./middleware/error.middleware.js"
 app.use(errorHandler)
 
-console.log(process.cwd())
 
 export {app}
