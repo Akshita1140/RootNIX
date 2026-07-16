@@ -134,25 +134,32 @@ const Navbar = ({ active, searchValue, onSearchChange, onSearchSubmit }) => {
                 </div>
             </div>
 
+            <div className="border-t border-[#c1c8c2]/30 px-5 py-3 lg:hidden">
+                <form
+                    onSubmit={(e) => {
+                        e.preventDefault()
+                        onSearchSubmit?.()
+                    }}
+                    className="flex items-center rounded-full border border-[#c1c8c2]/30 bg-[#f3f4f0] px-4 py-2"
+                >
+                    <Search className="mr-2 h-4 w-4 text-[#727974]" />
+                    <input
+                        value={searchValue ?? ""}
+                        onChange={(e) => onSearchChange?.(e.target.value)}
+                        className="w-full bg-transparent text-sm outline-none placeholder:text-[#727974]"
+                        placeholder="Find a plant..."
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                                e.preventDefault()
+                                onSearchSubmit?.()
+                            }
+                        }}
+                    />
+                </form>
+            </div>
+
             {mobileOpen && (
                 <div className="border-t border-[#c1c8c2]/30 bg-[#f9faf6] px-5 pb-5 pt-3 md:hidden">
-                    <form
-                        onSubmit={(e) => {
-                            e.preventDefault()
-                            onSearchSubmit?.()
-                            setMobileOpen(false)
-                        }}
-                        className="mb-4 flex items-center rounded-full border border-[#c1c8c2]/30 bg-[#f3f4f0] px-4 py-2"
-                    >
-                        <Search className="mr-2 h-4 w-4 text-[#727974]" />
-                        <input
-                            value={searchValue ?? ""}
-                            onChange={(e) => onSearchChange?.(e.target.value)}
-                            className="w-full bg-transparent text-sm outline-none placeholder:text-[#727974]"
-                            placeholder="Find a plant..."
-                        />
-                    </form>
-
                     <div className="flex flex-col gap-4">
                         <button
                             onClick={() => goTo("/marketplace")}
