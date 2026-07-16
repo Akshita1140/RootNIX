@@ -1,6 +1,7 @@
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useSelector } from "react-redux"
-import { Search, ShoppingCart, UserCircle } from "lucide-react"
+import { Search, ShoppingCart, UserCircle, Menu, X } from "lucide-react"
 import { useAuth } from "@/context/AuthContext.jsx"
 import { Button } from "@/components/ui/button"
 
@@ -9,6 +10,12 @@ const Navbar = ({ active, searchValue, onSearchChange, onSearchSubmit }) => {
     const navigate = useNavigate()
     const { user, authLoading } = useAuth()
     const { totalItems: cartItemCount } = useSelector((state) => state.cart)
+    const [mobileOpen, setMobileOpen] = useState(false)
+
+    const goTo = (path) => {
+        setMobileOpen(false)
+        navigate(path)
+    }
 
     const linkClass = (key) =>
         active === key
@@ -115,8 +122,80 @@ const Navbar = ({ active, searchValue, onSearchChange, onSearchSubmit }) => {
                             Get Started
                         </Button>
                     )}
+
+                    <button
+                        onClick={() => setMobileOpen((prev) => !prev)}
+                        className="rounded-full p-2 text-[#414844] transition hover:bg-[#e7e9e5] md:hidden"
+                        aria-label="Toggle menu"
+                        aria-expanded={mobileOpen}
+                    >
+                        {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                    </button>
                 </div>
             </div>
+
+            {mobileOpen && (
+                <div className="border-t border-[#c1c8c2]/30 bg-[#f9faf6] px-5 pb-5 pt-3 md:hidden">
+                    <form
+                        onSubmit={(e) => {
+                            e.preventDefault()
+                            onSearchSubmit?.()
+                            setMobileOpen(false)
+                        }}
+                        className="mb-4 flex items-center rounded-full border border-[#c1c8c2]/30 bg-[#f3f4f0] px-4 py-2"
+                    >
+                        <Search className="mr-2 h-4 w-4 text-[#727974]" />
+                        <input
+                            value={searchValue ?? ""}
+                            onChange={(e) => onSearchChange?.(e.target.value)}
+                            className="w-full bg-transparent text-sm outline-none placeholder:text-[#727974]"
+                            placeholder="Find a plant..."
+                        />
+                    </form>
+
+                    <div className="flex flex-col gap-4">
+                        <button
+                            onClick={() => goTo("/marketplace")}
+                            className={`text-left text-base ${linkClass("marketplace")}`}
+                        >
+                            Marketplace
+                        </button>
+                        <a className={`text-base ${linkClass("identifier")}`}>AI Identifier</a>
+                        <a className={`text-base ${linkClass("exchange")}`}>Exchange</a>
+                        <a className={`text-base ${linkClass("community")}`}>Community</a>
+                    </div>
+
+                    <div className="mt-5">
+                        {authLoading ? (
+                            <Button disabled className="w-full rounded-full bg-[#03271a]/70 text-white">
+                                Checking...
+                            </Button>
+                        ) : user ? (
+                            <Button
+                                onClick={() =>
+                                    goTo(
+                                        user.role === "admin"
+                                            ? "/admin"
+                                            : user.role === "seller"
+                                                ? "/seller-dashboard"
+                                                : "/profile"
+                                    )
+                                }
+                                className="w-full rounded-full bg-[#03271a] text-white hover:bg-[#03271a]/90"
+                            >
+                                Manage Account
+                            </Button>
+                        ) : (
+                            <Button
+                                onClick={() => goTo("/register")}
+                                className="w-full rounded-full bg-[#03271a] text-white hover:bg-[#03271a]/90"
+                            >
+                                Get Started
+                            </Button>
+                        )}
+                    </div>
+                </div>
+            )}
         </nav>
     )
 }
