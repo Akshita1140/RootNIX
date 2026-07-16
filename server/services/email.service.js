@@ -1,20 +1,12 @@
-import nodemailer from "nodemailer"
+import { Resend } from "resend"
 import { ApiErrors } from "../utils/ApiErrors.js"
 
-const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: Number(process.env.EMAIL_PORT),
-    secure: false,
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
-})
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 const sendOtpEmail = async (email, otp) => {
     try {
-        const info = await transporter.sendMail({
-            from: process.env.EMAIL_FROM,
+        const { data, error } = await resend.emails.send({
+            from: process.env.EMAIL_FROM, // e.g. 'RootNIX <noreply@rootnix.co.in>'
             to: email,
             subject: "Rootnix Email Verification OTP",
             html: `
@@ -24,7 +16,13 @@ const sendOtpEmail = async (email, otp) => {
                 <p>This OTP is valid for 5 minutes.</p>
             `
         })
-        return info
+
+        if (error) {
+            console.error("Resend error:", error)
+            throw new ApiErrors(500, "Failed to send OTP email")
+        }
+
+        return data
     } catch (error) {
         throw new ApiErrors(500, "Failed to send OTP email")
     }
