@@ -241,7 +241,7 @@ RootNIX/
 | Auth | JWT (access + refresh tokens), bcryptjs |
 | Payments | Razorpay |
 | Media Storage | Cloudinary |
-| Email | Nodemailer |
+| Email | Resend |
 | Security | Helmet, express-rate-limit, express-validator |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
