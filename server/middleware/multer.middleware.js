@@ -15,3 +15,21 @@ export const upload = multer({
     storage, 
 })
 
+// ─── Scanner uploads ─────────────────────────────────────────────────
+// Scan images are transient — we forward the buffer straight to
+// PlantNet/Gemini and never need to persist them to disk or Cloudinary,
+// so this uses memoryStorage instead of the disk storage above.
+const scanStorage = multer.memoryStorage()
+
+export const scanUpload = multer({
+    storage: scanStorage,
+    limits: { fileSize: 8 * 1024 * 1024 }, // 8MB
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true)
+        } else {
+            cb(new Error('Only image files are allowed'), false)
+        }
+    },
+})
+
