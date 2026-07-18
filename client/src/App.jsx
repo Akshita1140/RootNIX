@@ -7,6 +7,7 @@ import ResetPassword from "./pages/auth/ResetPassword"
 import Home from "./pages/Home"
 import MarketplacePage from "./pages/MarketplacePage"
 import ProductDetailPage from "./pages/ProductDetailPage"
+import ScannerPage from "./pages/ScannerPage"
 import CartPage from "./pages/CartPage"
 import CheckoutPage from "./pages/CheckoutPage"
 import OrderConfirmationPage from "./pages/OrderConfirmationPage"
@@ -22,6 +23,14 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/marketplace" element={<MarketplacePage />} />
             <Route path="/product/:productId" element={<ProductDetailPage />} />
+            <Route
+                path="/scanner"
+                element={
+                    <ProtectedRoute>
+                        <ScannerPage />
+                    </ProtectedRoute>
+                }
+            />
             <Route path="/register" element={<Register />} />
             <Route path="/verify-otp" element={<VerifyOtp />} />
             <Route path="/login" element={<Login />} />

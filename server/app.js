@@ -4,6 +4,12 @@ import cookieParser from "cookie-parser";
 
 const app = express()
 
+// Render sits behind a proxy/load balancer, so Express needs to trust the
+// X-Forwarded-For header to see the real client IP — required for
+// express-rate-limit to work correctly (and to avoid its startup validation
+// error) in production.
+app.set('trust proxy', 1)
+
 // CORS_ORIGIN can be a single URL or a comma-separated list (e.g. Vercel
 // production domain + preview deployments). Falls back to local dev.
 const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:5173")
@@ -38,6 +44,7 @@ import paymentsRoutes from "./routes/payments.routes.js"
 import cartRoutes from "./routes/cart.routes.js"
 import orderRoutes from "./routes/order.routes.js"
 import adminRoutes from "./routes/admin.routes.js"
+import scannerRoutes from "./routes/scanner.routes.js"
 
 //Routes declaration
 app.use('/api/v1/users',authRoutes)
@@ -47,6 +54,7 @@ app.use("/api/v1/payments",paymentsRoutes)
 app.use("/api/v1/cart",cartRoutes)
 app.use("/api/v1/orders",orderRoutes)
 app.use("/api/v1/admin",adminRoutes)
+app.use("/api/v1/scanner",scannerRoutes)
 
 // Global error handler — must be registered after all routes so it can
 // catch errors passed via next(err) from any route/controller/middleware.
