@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
 import toast from "react-hot-toast"
 import { useAuth } from "@/context/AuthContext.jsx"
 import {
@@ -22,6 +22,7 @@ import {
 
 const Login = () => {
     const navigate = useNavigate()
+    const location = useLocation()
     const { loginUser } = useAuth()
 
     const [formData, setFormData] = useState({
@@ -53,7 +54,8 @@ const Login = () => {
             loginUser(loggedInUser, accessToken)
 
             toast.success(res.data?.message || "Login successful")
-            navigate("/")
+            const redirectTo = location.state?.from?.pathname || "/"
+            navigate(redirectTo, { replace: true })
         } catch (error) {
             toast.error(error.response?.data?.message || "Login failed")
         } finally {
