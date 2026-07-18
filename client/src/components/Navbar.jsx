@@ -37,7 +37,9 @@ const Navbar = ({ active, searchValue, onSearchChange, onSearchSubmit }) => {
                         <button onClick={() => navigate("/marketplace")} className={linkClass("marketplace")}>
                             Marketplace
                         </button>
-                        <a className={linkClass("identifier")}>AI Identifier</a>
+                        <button onClick={() => navigate("/scanner")} className={linkClass("identifier")}>
+                            AI Identifier
+                        </button>
                         <a className={linkClass("exchange")}>Exchange</a>
                         <a className={linkClass("community")}>Community</a>
                     </div>
@@ -167,7 +169,9 @@ const Navbar = ({ active, searchValue, onSearchChange, onSearchSubmit }) => {
                         >
                             Marketplace
                         </button>
-                        <a className={`text-base ${linkClass("identifier")}`}>AI Identifier</a>
+                        <button onClick={() => goTo("/scanner")} className={`text-left text-base ${linkClass("identifier")}`}>
+                            AI Identifier
+                        </button>
                         <a className={`text-base ${linkClass("exchange")}`}>Exchange</a>
                         <a className={`text-base ${linkClass("community")}`}>Community</a>
                     </div>
